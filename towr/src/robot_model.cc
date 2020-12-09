@@ -27,42 +27,45 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <towr/models/robot_model.h>
-
-#include <towr/models/examples/monoped_model.h>
+#include <stdio.h>
+#include <towr/models/examples/anymal_model.h>
+#include <towr/models/examples/atlas_model.h>
 #include <towr/models/examples/biped_model.h>
 #include <towr/models/examples/hyq_model.h>
-#include <towr/models/examples/anymal_model.h>
+#include <towr/models/examples/monoped_model.h>
+#include <towr/models/robot_model.h>
+
+#include <iostream>
 
 namespace towr {
 
-
-RobotModel::RobotModel(Robot robot)
-{
-  switch (robot) {
-    case Monoped:
-      dynamic_model_   = std::make_shared<MonopedDynamicModel>();
-      kinematic_model_ = std::make_shared<MonopedKinematicModel>();
-      break;
-    case Biped:
-      dynamic_model_   = std::make_shared<BipedDynamicModel>();
-      kinematic_model_ = std::make_shared<BipedKinematicModel>();
-      break;
-    case Hyq:
-      dynamic_model_   = std::make_shared<HyqDynamicModel>();
-      kinematic_model_ = std::make_shared<HyqKinematicModel>();
-      break;
-    case Anymal:
-      dynamic_model_   = std::make_shared<AnymalDynamicModel>();
-      kinematic_model_ = std::make_shared<AnymalKinematicModel>();
-      break;
-    default:
-      assert(false); // Error: Robot model not implemented.
-      break;
-  }
+RobotModel::RobotModel(Robot robot) {
+    switch (robot) {
+        case Monoped:
+            dynamic_model_ = std::make_shared<MonopedDynamicModel>();
+            kinematic_model_ = std::make_shared<MonopedKinematicModel>();
+            break;
+        case Biped:
+            dynamic_model_ = std::make_shared<BipedDynamicModel>();
+            kinematic_model_ = std::make_shared<BipedKinematicModel>();
+            break;
+        case Hyq:
+            dynamic_model_ = std::make_shared<HyqDynamicModel>();
+            kinematic_model_ = std::make_shared<HyqKinematicModel>();
+            break;
+        case Anymal:
+            dynamic_model_ = std::make_shared<AnymalDynamicModel>();
+            kinematic_model_ = std::make_shared<AnymalKinematicModel>();
+            break;
+        case Atlas:
+            dynamic_model_ = std::make_shared<AtlasDynamicModel>();
+            kinematic_model_ = std::make_shared<AtlasKinematicModel>();
+            break;
+        default:
+            assert(false);  // Error: Robot model not implemented.
+            break;
+    }
 }
 
-
-} // namespace towr
-
+}  // namespace towr
 

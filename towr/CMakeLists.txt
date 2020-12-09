@@ -88,6 +88,10 @@ target_link_libraries(${PROJECT_NAME}-example
 )
 add_test(${PROJECT_NAME}-example ${PROJECT_NAME}-example)
 
+add_executable(atlas-example test/atlas_example)
+target_link_libraries(atlas-example PRIVATE ${PROJECT_NAME}
+    ifopt::ifopt_ipopt)
+
 # unit tests of costs/constraints
 find_package(GTest QUIET)
 if (TARGET GTest::GTest) # only build when modern targets exists
