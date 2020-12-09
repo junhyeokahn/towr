@@ -30,6 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TOWR_MODELS_GAIT_GENERATOR_H_
 #define TOWR_MODELS_GAIT_GENERATOR_H_
 
+#include <sys/types.h>
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -44,80 +46,98 @@ namespace towr {
  * initialize the towr optimization problem.
  */
 class GaitGenerator {
-public:
-  using Ptr           = std::shared_ptr<GaitGenerator>;
-  using VecTimes      = std::vector<double>;
-  using FootDurations = std::vector<VecTimes>;
-  using ContactState  = std::vector<bool>;
-  using GaitInfo      = std::pair<VecTimes,std::vector<ContactState>>;
-  using EE            = uint;
+   public:
+    using Ptr = std::shared_ptr<GaitGenerator>;
+    using VecTimes = std::vector<double>;
+    using FootDurations = std::vector<VecTimes>;
+    using ContactState = std::vector<bool>;
+    using GaitInfo = std::pair<VecTimes, std::vector<ContactState>>;
+    using EE = uint;
 
-  /**
-   * @brief Predefined combinations of different strides.
-   */
-  enum Combos { C0, C1, C2, C3, C4, COMBO_COUNT};
+    /**
+     * @brief Predefined combinations of different strides.
+     */
+    enum Combos { C0, C1, C2, C3, C4, COMBO_COUNT };
 
-  /**
-   * @brief Predefined strides, each with a different gait diagram.
-   */
-  enum Gaits  {Stand=0, Flight,
-               Walk1, Walk2, Walk2E,
-               Run2, Run2E, Run1, Run1E, Run3, Run3E,
-               Hop1, Hop1E, Hop2, Hop3, Hop3E, Hop5, Hop5E,
-               GAIT_COUNT};
+    /**
+     * @brief Predefined strides, each with a different gait diagram.
+     */
+    enum Gaits {
+        Stand = 0,
+        Flight,
+        Walk1,
+        Walk2,
+        Walk2E,
+        Run2,
+        Run2E,
+        Run1,
+        Run1E,
+        Run3,
+        Run3E,
+        Hop1,
+        Hop1E,
+        Hop2,
+        Hop3,
+        Hop3E,
+        Hop5,
+        Hop5E,
+        GAIT_COUNT
+    };
 
-  static Ptr MakeGaitGenerator(int leg_count);
+    static Ptr MakeGaitGenerator(int leg_count);
 
-  GaitGenerator () = default;
-  virtual ~GaitGenerator () = default;
+    GaitGenerator() = default;
+    virtual ~GaitGenerator() = default;
 
-  /**
-   * @returns the swing and stance durations for the set gait.
-   * @param ee  endeffector for which the phase durations are desired.
-   * @param T   total time for all phases, durations are scaled by that.
-   */
-  VecTimes GetPhaseDurations(double T, EE ee) const;
+    /**
+     * @returns the swing and stance durations for the set gait.
+     * @param ee  endeffector for which the phase durations are desired.
+     * @param T   total time for all phases, durations are scaled by that.
+     */
+    VecTimes GetPhaseDurations(double T, EE ee) const;
 
-  /**
-   * @returns true if the foot is initially in contact with the environment.
-   * @param ee  The endeffector/foot/hand.
-   */
-  bool IsInContactAtStart(EE ee) const;
+    /**
+     * @returns true if the foot is initially in contact with the environment.
+     * @param ee  The endeffector/foot/hand.
+     */
+    bool IsInContactAtStart(EE ee) const;
 
-  /**
-   * @brief Sets a specific sequence of gaits.
-   *
-   * The derived class decides what each combo maps to. This function then fills
-   * the times_ and contacts_ variables accordingly.
-   */
-  virtual void SetCombo(Combos combo) = 0;
+    /**
+     * @brief Sets a specific sequence of gaits.
+     *
+     * The derived class decides what each combo maps to. This function then
+     * fills the times_ and contacts_ variables accordingly.
+     */
+    virtual void SetCombo(Combos combo) = 0;
 
-  /**
-   * @brief  Sets the times_ and contacts_ variables according to the gaits.
-   * @param gaits The sequence of steps which defines gait. For example use @c {Stand,Walk1,Walk1,Stand} to declare walking gait with two steps.
-   */
-  void SetGaits(const std::vector<Gaits>& gaits);
+    /**
+     * @brief  Sets the times_ and contacts_ variables according to the gaits.
+     * @param gaits The sequence of steps which defines gait. For example use @c
+     * {Stand,Walk1,Walk1,Stand} to declare walking gait with two steps.
+     */
+    void SetGaits(const std::vector<Gaits>& gaits);
 
-protected:
-  /// Phase times for the complete robot during which no contact state changes.
-  std::vector<double> times_;
+   protected:
+    /// Phase times for the complete robot during which no contact state
+    /// changes.
+    std::vector<double> times_;
 
-  /**
-   * The contact state for the complete robot. The size of this vector must
-   * be equal to the above times_.
-   */
-  std::vector<ContactState> contacts_;
+    /**
+     * The contact state for the complete robot. The size of this vector must
+     * be equal to the above times_.
+     */
+    std::vector<ContactState> contacts_;
 
-  /**
-   * Removes the last phase that would transition to a new stride.
-   * This is usually necessary for a gait change.
-   */
-  GaitInfo RemoveTransition(const GaitInfo& g) const;
+    /**
+     * Removes the last phase that would transition to a new stride.
+     * This is usually necessary for a gait change.
+     */
+    GaitInfo RemoveTransition(const GaitInfo& g) const;
 
-private:
-  FootDurations GetPhaseDurations() const;
-  virtual GaitInfo GetGait(Gaits gait) const = 0;
-  VecTimes GetNormalizedPhaseDurations(EE ee) const;
+   private:
+    FootDurations GetPhaseDurations() const;
+    virtual GaitInfo GetGait(Gaits gait) const = 0;
+    VecTimes GetNormalizedPhaseDurations(EE ee) const;
 };
 
 } /* namespace towr */
