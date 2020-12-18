@@ -30,11 +30,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TOWR_CONSTRAINTS_DYNAMIC_CONSTRAINT_H_
 #define TOWR_CONSTRAINTS_DYNAMIC_CONSTRAINT_H_
 
+#include <towr/models/dynamic_model.h>
+#include <towr/variables/euler_converter.h>
 #include <towr/variables/spline.h>
 #include <towr/variables/spline_holder.h>
-#include <towr/variables/euler_converter.h>
-
-#include <towr/models/dynamic_model.h>
 
 #include "time_discretization_constraint.h"
 
@@ -61,46 +60,51 @@ namespace towr {
  * @ingroup Constraints
  */
 class DynamicConstraint : public TimeDiscretizationConstraint {
-public:
-  using Vector6d = Eigen::Matrix<double, 6, 1>;
+   public:
+    using Vector6d = Eigen::Matrix<double, 6, 1>;
 
-  /**
-   * @brief  Construct a Dynamic constraint
-   * @param model  The system dynamics to enforce (e.g. centroidal, LIP, ...)
-   * @param T   The total duration of the optimization.
-   * @param dt  the discretization intervall at which to enforce constraints.
-   * @param spline_holder  A pointer to the current optimization variables.
-   */
-  DynamicConstraint (const DynamicModel::Ptr& model,
-                     double T, double dt,
-                     const SplineHolder& spline_holder);
-  virtual ~DynamicConstraint () = default;
+    /**
+     * @brief  Construct a Dynamic constraint
+     * @param model  The system dynamics to enforce (e.g. centroidal, LIP, ...)
+     * @param T   The total duration of the optimization.
+     * @param dt  the discretization intervall at which to enforce constraints.
+     * @param spline_holder  A pointer to the current optimization variables.
+     */
+    DynamicConstraint(const DynamicModel::Ptr& model, double T, double dt,
+                      const SplineHolder& spline_holder);
+    virtual ~DynamicConstraint() = default;
 
-private:
-  NodeSpline::Ptr base_linear_;   ///< lin. base pos/vel/acc in world frame
-  EulerConverter base_angular_;        ///< angular base state
-  std::vector<NodeSpline::Ptr> ee_forces_; ///< endeffector forces in world frame.
-  std::vector<NodeSpline::Ptr> ee_motion_; ///< endeffector position in world frame.
+   private:
+    NodeSpline::Ptr base_linear_;  ///< lin. base pos/vel/acc in world frame
+    EulerConverter base_angular_;  ///< angular base state
+    std::vector<NodeSpline::Ptr>
+        ee_forces_;  ///< endeffector forces in world frame.
+    std::vector<NodeSpline::Ptr>
+        ee_motion_;  ///< endeffector position in world frame.
 
-  mutable DynamicModel::Ptr model_;    ///< the dynamic model (e.g. Centroidal)
+    mutable DynamicModel::Ptr model_;  ///< the dynamic model (e.g. Centroidal)
 
-  /**
-   * @brief The row in the overall constraint for this evaluation time.
-   * @param k The index of the constraint evaluation at t=k*dt.
-   * @param dimension Which base acceleration dimension this constraint is for.
-   * @return The constraint index in the overall dynamic constraint.
-   */
-  int GetRow(int k, Dim6D dimension) const;
+    /**
+     * @brief The row in the overall constraint for this evaluation time.
+     * @param k The index of the constraint evaluation at t=k*dt.
+     * @param dimension Which base acceleration dimension this constraint is
+     * for.
+     * @return The constraint index in the overall dynamic constraint.
+     */
+    int GetRow(int k, Dim6D dimension) const;
 
-  /**
-   * @brief Updates the model with the current state and forces.
-   * @param t Time at which to query the state and force splines.
-   */
-  void UpdateModel(double t) const;
+    /**
+     * @brief Updates the model with the current state and forces.
+     * @param t Time at which to query the state and force splines.
+     */
+    void UpdateModel(double t) const;
 
-  void UpdateConstraintAtInstance(double t, int k, VectorXd& g) const override;
-  void UpdateBoundsAtInstance(double t, int k, VecBound& bounds) const override;
-  void UpdateJacobianAtInstance(double t, int k, std::string, Jacobian&) const override;
+    void UpdateConstraintAtInstance(double t, int k,
+                                    VectorXd& g) const override;
+    void UpdateBoundsAtInstance(double t, int k,
+                                VecBound& bounds) const override;
+    void UpdateJacobianAtInstance(double t, int k, std::string,
+                                  Jacobian&) const override;
 };
 
 } /* namespace towr */

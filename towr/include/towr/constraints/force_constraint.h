@@ -31,9 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TOWR_CONSTRAINTS_FORCE_CONSTRAINT_H_
 
 #include <ifopt/constraint_set.h>
-
+#include <towr/terrain/height_map.h>  // for friction cone
 #include <towr/variables/nodes_variables_phase_based.h>
-#include <towr/terrain/height_map.h> // for friction cone
 
 namespace towr {
 
@@ -53,42 +52,43 @@ namespace towr {
  * @ingroup Constraints
  */
 class ForceConstraint : public ifopt::ConstraintSet {
-public:
-  using Vector3d = Eigen::Vector3d;
-  using EE = uint;
+   public:
+    using Vector3d = Eigen::Vector3d;
+    using EE = uint;
 
-  /**
-   * @brief Constructs a force contraint.
-   * @param terrain  The gradient information of the terrain for friction cone.
-   * @param force_limit_in_normal_direction  Maximum pushing force [N].
-   * @param endeffector_id Which endeffector force should be constrained.
-   */
-  ForceConstraint (const HeightMap::Ptr& terrain,
-                   double force_limit_in_normal_direction,
-                   EE endeffector_id);
-  virtual ~ForceConstraint () = default;
+    /**
+     * @brief Constructs a force contraint.
+     * @param terrain  The gradient information of the terrain for friction
+     * cone.
+     * @param force_limit_in_normal_direction  Maximum pushing force [N].
+     * @param endeffector_id Which endeffector force should be constrained.
+     */
+    ForceConstraint(const HeightMap::Ptr& terrain,
+                    double force_limit_in_normal_direction, EE endeffector_id);
+    virtual ~ForceConstraint() = default;
 
-  void InitVariableDependedQuantities(const VariablesPtr& x) override;
+    void InitVariableDependedQuantities(const VariablesPtr& x) override;
 
-  VectorXd GetValues() const override;
-  VecBound GetBounds() const override;
-  void FillJacobianBlock (std::string var_set, Jacobian&) const override;
+    VectorXd GetValues() const override;
+    VecBound GetBounds() const override;
+    void FillJacobianBlock(std::string var_set, Jacobian&) const override;
 
-private:
-  NodesVariablesPhaseBased::Ptr ee_force_;  ///< the current xyz foot forces.
-  NodesVariablesPhaseBased::Ptr ee_motion_; ///< the current xyz foot positions.
+   private:
+    NodesVariablesPhaseBased::Ptr ee_force_;  ///< the current xyz foot forces.
+    NodesVariablesPhaseBased::Ptr
+        ee_motion_;  ///< the current xyz foot positions.
 
-  HeightMap::Ptr terrain_; ///< gradient information at every position (x,y).
-  double fn_max_;          ///< force limit in normal direction.
-  double mu_;              ///< friction coeff between robot feet and terrain.
-  int n_constraints_per_node_; ///< number of constraint for each node.
-  EE ee_;                  ///< The endeffector force to be constrained.
+    HeightMap::Ptr terrain_;  ///< gradient information at every position (x,y).
+    double fn_max_;           ///< force limit in normal direction.
+    double mu_;  ///< friction coeff between robot feet and terrain.
+    int n_constraints_per_node_;  ///< number of constraint for each node.
+    EE ee_;                       ///< The endeffector force to be constrained.
 
-  /**
-   * The are those Hermite-nodes that shape the polynomial during the
-   * stance phases, while all the others are already set to zero force (swing)
-   **/
-  std::vector<int> pure_stance_force_node_ids_;
+    /**
+     * The are those Hermite-nodes that shape the polynomial during the
+     * stance phases, while all the others are already set to zero force (swing)
+     **/
+    std::vector<int> pure_stance_force_node_ids_;
 };
 
 } /* namespace towr */

@@ -43,16 +43,16 @@ namespace towr {
  * @ingroup Variables
  */
 class NodesVariablesAll : public NodesVariables {
-public:
-  /**
-   * @param n_nodes  Number of nodes to construct the spline.
-   * @param n_dim    Number of dimensions of each node.
-   * @param variable_id  Name of this variables set in the optimization.
-   */
-  NodesVariablesAll (int n_nodes, int n_dim, std::string variable_id);
-  virtual ~NodesVariablesAll () = default;
+   public:
+    /**
+     * @param n_nodes  Number of nodes to construct the spline.
+     * @param n_dim    Number of dimensions of each node.
+     * @param variable_id  Name of this variables set in the optimization.
+     */
+    NodesVariablesAll(int n_nodes, int n_dim, std::string variable_id);
+    virtual ~NodesVariablesAll() = default;
 
-  std::vector<NodeValueInfo> GetNodeValuesInfo(int idx) const override;
+    std::vector<NodeValueInfo> GetNodeValuesInfo(int idx) const override;
 };
 
 } /* namespace towr */

@@ -31,7 +31,12 @@ int main() {
     // define the desired goal state of the hopper
     formulation.final_base_.lin.at(towr::kPos) << 1.0, 0.0, nominal_height;
 
+    // base lin: ceil(7.65 / 0.1) + 1 = 78 nodes, 78*6 = 468 vars
+    // base ori: ceil(7.65 / 0.1) + 1 = 78 nodes, 78*6 = 468 vars
     // lfoot: ____-----________-----________-----________
+    // 11 nodes, 27 optimization variables per foot
+    // Node:  o   o o o        o o o        o o o       o
+    // Var:   3     5 3          5 3          5 3
     // rfoot: ___________-----________----_________----__
     // swing:0.75, ds: 0.9
     formulation.params_.ee_phase_durations_.resize(2);
@@ -60,7 +65,7 @@ int main() {
     auto solver = std::make_shared<ifopt::IpoptSolver>();
     solver->SetOption("jacobian_approximation",
                       "exact");  // "finite difference-values"
-    solver->SetOption("max_cpu_time", 20.0);
+    solver->SetOption("max_cpu_time", 500.0);
     solver->Solve(nlp);
 
     // Can directly view the optimization variables through:
@@ -72,7 +77,7 @@ int main() {
     nlp.PrintCurrent();  // view variable-set, constraint violations,
                          // indices,...
     cout << fixed;
-    cout << "\n====================\nAtlas"
+    cout << "\n====================\nAtlas "
             "trajectory:\n====================\n";
 
     double t = 0.0;
@@ -82,35 +87,33 @@ int main() {
         cout << solution.base_linear_->GetPoint(t).p().transpose() << "\t[m]"
              << endl;
 
-        cout << "Base Euler roll, pitch, yaw:  \t";
+        cout << "Base Euler roll, pitch, yaw:   \t";
         Eigen::Vector3d rad = solution.base_angular_->GetPoint(t).p();
         cout << (rad / M_PI * 180).transpose() << "\t[deg]" << endl;
 
-        cout << "Left Foot position x,y,z:          \t";
+        cout << "Left Foot position x,y,z:   \t";
         cout << solution.ee_motion_.at(L)->GetPoint(t).p().transpose()
              << "\t[m]" << endl;
 
-        cout << "Right Foot position x,y,z:          \t";
+        cout << "Right Foot position x,y,z:   \t";
         cout << solution.ee_motion_.at(R)->GetPoint(t).p().transpose()
              << "\t[m]" << endl;
 
-        cout << "Left Foot Contact force x,y,z:          \t";
+        cout << "Left Foot Contact force x,y,z:   \t";
         cout << solution.ee_force_.at(L)->GetPoint(t).p().transpose() << "\t[N]"
              << endl;
 
-        cout << "Right Foot Contact force x,y,z:          \t";
+        cout << "Right Foot Contact force x,y,z:   \t";
         cout << solution.ee_force_.at(R)->GetPoint(t).p().transpose() << "\t[N]"
              << endl;
 
         bool contact = solution.phase_durations_.at(L)->IsContactPhase(t);
         std::string foot_in_contact = contact ? "yes" : "no";
-        cout << "Left Foot in contact:              \t" + foot_in_contact
-             << endl;
+        cout << "Left Foot in contact:   \t" + foot_in_contact << endl;
 
         contact = solution.phase_durations_.at(R)->IsContactPhase(t);
         foot_in_contact = contact ? "yes" : "no";
-        cout << "Right Foot in contact:              \t" + foot_in_contact
-             << endl;
+        cout << "Right Foot in contact:   \t" + foot_in_contact << endl;
 
         cout << endl;
 

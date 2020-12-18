@@ -30,10 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TOWR_VARIABLES_POLYNOMIAL_H_
 #define TOWR_VARIABLES_POLYNOMIAL_H_
 
+#include <Eigen/Dense>
 #include <string>
 #include <vector>
-
-#include <Eigen/Dense>
 
 #include "state.h"
 
@@ -51,41 +50,44 @@ namespace towr {
  * derivatives from the coefficient values.
  */
 class Polynomial {
-public:
-  enum Coefficients { A=0, B, C, D, E, F, G, H, I, J};
-  using CoeffIDVec = std::vector<Coefficients>;
-  using VectorXd   = Eigen::VectorXd;
+   public:
+    enum Coefficients { A = 0, B, C, D, E, F, G, H, I, J };
+    using CoeffIDVec = std::vector<Coefficients>;
+    using VectorXd = Eigen::VectorXd;
 
-public:
-  /**
-   * @brief Constructs a polynomial with zero coefficient values.
-   * @param poly_order  The highest exponent of t, e.g. 5-th order -> t^5.
-   * @param poly_dim    The dimensions of f(t), e.g. x,y,z.
-   */
-  explicit Polynomial(int poly_order, int poly_dim);
-  virtual ~Polynomial() = default;
+   public:
+    /**
+     * @brief Constructs a polynomial with zero coefficient values.
+     * @param poly_order  The highest exponent of t, e.g. 5-th order -> t^5.
+     * @param poly_dim    The dimensions of f(t), e.g. x,y,z.
+     */
+    explicit Polynomial(int poly_order, int poly_dim);
+    virtual ~Polynomial() = default;
 
-  /**
-   * @returns The state of the polyomial at a specific time t.
-   */
-  State GetPoint(double t) const;
+    /**
+     * @returns The state of the polyomial at a specific time t.
+     */
+    State GetPoint(double t) const;
 
-  /**
-   * @brief  The derivative of the polynomial with respect to the coefficients.
-   *
-   * @param t  The time at which the derivative should be evaluated.
-   * @param poly_deriv  Which polynomial derivative f(t), fd(t), function to use.
-   * @param coeff  The coefficient with respect to which to calculate the derivative.
-   */
-  double GetDerivativeWrtCoeff(double t, Dx poly_deriv, Coefficients coeff) const;
+    /**
+     * @brief  The derivative of the polynomial with respect to the
+     * coefficients.
+     *
+     * @param t  The time at which the derivative should be evaluated.
+     * @param poly_deriv  Which polynomial derivative f(t), fd(t), function to
+     * use.
+     * @param coeff  The coefficient with respect to which to calculate the
+     * derivative.
+     */
+    double GetDerivativeWrtCoeff(double t, Dx poly_deriv,
+                                 Coefficients coeff) const;
 
-protected:
-  std::vector<VectorXd> coeff_;
+   protected:
+    std::vector<VectorXd> coeff_;
 
-private:
-  CoeffIDVec coeff_ids_;
+   private:
+    CoeffIDVec coeff_ids_;
 };
-
 
 /**
  * @brief  Represents a Cubic-Hermite-Polynomial
@@ -107,69 +109,71 @@ private:
  * See also matlab/cubic_hermite_polynomial.m for generation of derivatives.
  */
 class CubicHermitePolynomial : public Polynomial {
-public:
-  CubicHermitePolynomial(int dim);
-  virtual ~CubicHermitePolynomial() = default;
+   public:
+    CubicHermitePolynomial(int dim);
+    virtual ~CubicHermitePolynomial() = default;
 
+    /**
+     * @brief  sets the total duration of the polynomial.
+     */
+    void SetDuration(double duration);
 
-  /**
-   * @brief  sets the total duration of the polynomial.
-   */
-  void SetDuration(double duration);
+    /**
+     * @brief Fully defines the polynomial by the node values using current
+     * duration.
+     * @param n0  The value and derivative at the start of the polynomial.
+     * @param n1  The value and derivative at the end of the polynomial.
+     */
+    void SetNodes(const Node& n0, const Node& n1);
 
-  /**
-   * @brief Fully defines the polynomial by the node values using current duration.
-   * @param n0  The value and derivative at the start of the polynomial.
-   * @param n1  The value and derivative at the end of the polynomial.
-   */
-  void SetNodes(const Node& n0, const Node& n1);
+    /**
+     * @brief updates the coefficients using current nodes and durations.
+     */
+    void UpdateCoeff();
 
-  /**
-   * @brief updates the coefficients using current nodes and durations.
-   */
-  void UpdateCoeff();
+    /**
+     * @brief How the total duration affect the value ("pos") of the polynomial.
+     * @param t  The time [0,T] at which the change in value should be observed.
+     */
+    VectorXd GetDerivativeOfPosWrtDuration(double t) const;
 
-  /**
-   * @brief How the total duration affect the value ("pos") of the polynomial.
-   * @param t  The time [0,T] at which the change in value should be observed.
-   */
-  VectorXd GetDerivativeOfPosWrtDuration(double t) const;
+    /**
+     * @brief The derivative of the polynomial when changing the start node.
+     * @param dxdt  Which polynomial derivative f(t), fd(t) function to use.
+     * @param node_deriv  Whether derivative should be w.r.t start-node position
+     * or velocity.
+     * @param t  The time along the polynomial.
+     */
+    double GetDerivativeWrtStartNode(Dx dfdt, Dx node_deriv, double t) const;
 
-  /**
-   * @brief The derivative of the polynomial when changing the start node.
-   * @param dxdt  Which polynomial derivative f(t), fd(t) function to use.
-   * @param node_deriv  Whether derivative should be w.r.t start-node position or velocity.
-   * @param t  The time along the polynomial.
-   */
-  double GetDerivativeWrtStartNode(Dx dfdt, Dx node_deriv, double t) const;
+    /**
+     * @brief The derivative of the polynomial when changing the end node.
+     * @param dxdt  Which polynomial derivative f(t), fd(t) function to use.
+     * @param node_deriv  Whether derivative should be w.r.t end-node position
+     * or velocity.
+     * @param t  The time along the polynomial.
+     */
+    double GetDerivativeWrtEndNode(Dx dfdt, Dx node_deriv, double t) const;
 
-  /**
-   * @brief The derivative of the polynomial when changing the end node.
-   * @param dxdt  Which polynomial derivative f(t), fd(t) function to use.
-   * @param node_deriv  Whether derivative should be w.r.t end-node position or velocity.
-   * @param t  The time along the polynomial.
-   */
-  double GetDerivativeWrtEndNode(Dx dfdt, Dx node_deriv, double t) const;
+    /**
+     * @returns the total duration of the polynomial.
+     */
+    const double GetDuration() const { return T_; };
 
-  /**
-   * @returns the total duration of the polynomial.
-   */
-  const double GetDuration() const { return T_; };
+   private:
+    double T_;      ///< the total duration of the polynomial.
+    Node n0_, n1_;  ///< the start and final node comprising the polynomial.
 
-private:
-  double T_;     ///< the total duration of the polynomial.
-  Node n0_, n1_; ///< the start and final node comprising the polynomial.
+    // see matlab/cubic_hermite_polynomial.m script for derivation
+    double GetDerivativeOfPosWrtStartNode(Dx node_deriv, double t_local) const;
+    double GetDerivativeOfVelWrtStartNode(Dx node_deriv, double t_local) const;
+    double GetDerivativeOfAccWrtStartNode(Dx node_deriv, double t_local) const;
 
-  // see matlab/cubic_hermite_polynomial.m script for derivation
-  double GetDerivativeOfPosWrtStartNode(Dx node_deriv, double t_local) const;
-  double GetDerivativeOfVelWrtStartNode(Dx node_deriv, double t_local) const;
-  double GetDerivativeOfAccWrtStartNode(Dx node_deriv, double t_local) const;
-
-  double GetDerivativeOfPosWrtEndNode(Dx node_deriv, double t_local) const;
-  double GetDerivativeOfVelWrtEndNode(Dx node_deriv, double t_local) const;
-  double GetDerivativeOfAccWrtEndNode(Dx node_deriv, double t_local) const;
+    double GetDerivativeOfPosWrtEndNode(Dx node_deriv, double t_local) const;
+    double GetDerivativeOfVelWrtEndNode(Dx node_deriv, double t_local) const;
+    double GetDerivativeOfAccWrtEndNode(Dx node_deriv, double t_local) const;
 };
 
-} // namespace towr
+}  // namespace towr
 
-#endif // TOWR_VARIABLES_POLYNOMIAL_H_
+#endif  // TOWR_VARIABLES_POLYNOMIAL_H_

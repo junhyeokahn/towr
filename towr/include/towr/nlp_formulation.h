@@ -30,14 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TOWR_NLP_FACTORY_H_
 #define TOWR_NLP_FACTORY_H_
 
-#include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
-
-#include <towr/variables/spline_holder.h>
+#include <ifopt/variable_set.h>
 #include <towr/models/robot_model.h>
-#include <towr/terrain/height_map.h>
 #include <towr/parameters.h>
+#include <towr/terrain/height_map.h>
+#include <towr/variables/spline_holder.h>
 
 namespace towr {
 
@@ -71,62 +70,63 @@ namespace towr {
  * in this paper: https://ieeexplore.ieee.org/document/8283570/
  */
 class NlpFormulation {
-public:
-  using VariablePtrVec   = std::vector<ifopt::VariableSet::Ptr>;
-  using ContraintPtrVec  = std::vector<ifopt::ConstraintSet::Ptr>;
-  using CostPtrVec       = std::vector<ifopt::CostTerm::Ptr>;
-  using EEPos            = std::vector<Eigen::Vector3d>;
-  using Vector3d         = Eigen::Vector3d;
+   public:
+    using VariablePtrVec = std::vector<ifopt::VariableSet::Ptr>;
+    using ContraintPtrVec = std::vector<ifopt::ConstraintSet::Ptr>;
+    using CostPtrVec = std::vector<ifopt::CostTerm::Ptr>;
+    using EEPos = std::vector<Eigen::Vector3d>;
+    using Vector3d = Eigen::Vector3d;
 
-  NlpFormulation ();
-  virtual ~NlpFormulation () = default;
+    NlpFormulation();
+    virtual ~NlpFormulation() = default;
 
-  /**
-   * @brief The ifopt variable sets that will be optimized over.
-   * @param[in/out] builds fully-constructed splines from the variables.
-   */
-  VariablePtrVec GetVariableSets(SplineHolder& spline_holder);
+    /**
+     * @brief The ifopt variable sets that will be optimized over.
+     * @param[in/out] builds fully-constructed splines from the variables.
+     */
+    VariablePtrVec GetVariableSets(SplineHolder& spline_holder);
 
-  /**
-   * @brief The ifopt constraints that enforce feasible motions.
-   * @param[in] uses the fully-constructed splines for initialization of constraints.
-   */
-  ContraintPtrVec GetConstraints(const SplineHolder& spline_holder) const;
+    /**
+     * @brief The ifopt constraints that enforce feasible motions.
+     * @param[in] uses the fully-constructed splines for initialization of
+     * constraints.
+     */
+    ContraintPtrVec GetConstraints(const SplineHolder& spline_holder) const;
 
-  /** @brief The ifopt costs to tune the motion. */
-  ContraintPtrVec GetCosts() const;
+    /** @brief The ifopt costs to tune the motion. */
+    ContraintPtrVec GetCosts() const;
 
+    BaseState initial_base_;
+    BaseState final_base_;
+    EEPos initial_ee_W_;
+    RobotModel model_;
+    HeightMap::Ptr terrain_;
+    Parameters params_;
 
-  BaseState initial_base_;
-  BaseState final_base_;
-  EEPos  initial_ee_W_;
-  RobotModel model_;
-  HeightMap::Ptr terrain_;
-  Parameters params_;
+   private:
+    // variables
+    std::vector<NodesVariables::Ptr> MakeBaseVariables() const;
+    std::vector<NodesVariablesPhaseBased::Ptr> MakeEndeffectorVariables() const;
+    std::vector<NodesVariablesPhaseBased::Ptr> MakeForceVariables() const;
+    std::vector<PhaseDurations::Ptr> MakeContactScheduleVariables() const;
 
-private:
-  // variables
-  std::vector<NodesVariables::Ptr> MakeBaseVariables() const;
-  std::vector<NodesVariablesPhaseBased::Ptr> MakeEndeffectorVariables() const;
-  std::vector<NodesVariablesPhaseBased::Ptr> MakeForceVariables() const;
-  std::vector<PhaseDurations::Ptr> MakeContactScheduleVariables() const;
+    // constraints
+    ContraintPtrVec GetConstraint(Parameters::ConstraintName name,
+                                  const SplineHolder& splines) const;
+    ContraintPtrVec MakeDynamicConstraint(const SplineHolder& s) const;
+    ContraintPtrVec MakeRangeOfMotionBoxConstraint(const SplineHolder& s) const;
+    ContraintPtrVec MakeTotalTimeConstraint() const;
+    ContraintPtrVec MakeTerrainConstraint() const;
+    ContraintPtrVec MakeForceConstraint() const;
+    ContraintPtrVec MakeSwingConstraint() const;
+    ContraintPtrVec MakeBaseRangeOfMotionConstraint(
+        const SplineHolder& s) const;
+    ContraintPtrVec MakeBaseAccConstraint(const SplineHolder& s) const;
 
-  // constraints
-  ContraintPtrVec GetConstraint(Parameters::ConstraintName name,
-                                const SplineHolder& splines) const;
-  ContraintPtrVec MakeDynamicConstraint(const SplineHolder& s) const;
-  ContraintPtrVec MakeRangeOfMotionBoxConstraint(const SplineHolder& s) const;
-  ContraintPtrVec MakeTotalTimeConstraint() const;
-  ContraintPtrVec MakeTerrainConstraint() const;
-  ContraintPtrVec MakeForceConstraint() const;
-  ContraintPtrVec MakeSwingConstraint() const;
-  ContraintPtrVec MakeBaseRangeOfMotionConstraint(const SplineHolder& s) const;
-  ContraintPtrVec MakeBaseAccConstraint(const SplineHolder& s) const;
-
-  // costs
-  CostPtrVec GetCost(const Parameters::CostName& id, double weight) const;
-  CostPtrVec MakeForcesCost(double weight) const;
-  CostPtrVec MakeEEMotionCost(double weight) const;
+    // costs
+    CostPtrVec GetCost(const Parameters::CostName& id, double weight) const;
+    CostPtrVec MakeForcesCost(double weight) const;
+    CostPtrVec MakeEEMotionCost(double weight) const;
 };
 
 } /* namespace towr */

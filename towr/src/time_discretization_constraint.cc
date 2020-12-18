@@ -33,68 +33,56 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace towr {
 
+TimeDiscretizationConstraint::TimeDiscretizationConstraint(double T, double dt,
+                                                           std::string name)
+    : ConstraintSet(kSpecifyLater, name) {
+    double t = 0.0;
+    dts_ = {t};
 
-TimeDiscretizationConstraint::TimeDiscretizationConstraint (double T, double dt,
-                                                            std::string name)
-    :ConstraintSet(kSpecifyLater, name)
-{
-  double t = 0.0;
-  dts_ = {t};
+    for (int i = 0; i < floor(T / dt); ++i) {
+        t += dt;
+        dts_.push_back(t);
+    }
 
-  for (int i=0; i<floor(T/dt); ++i) {
-    t += dt;
-    dts_.push_back(t);
-  }
-
-  dts_.push_back(T); // also ensure constraints at very last node/time.
+    dts_.push_back(T);  // also ensure constraints at very last node/time.
 }
 
-TimeDiscretizationConstraint::TimeDiscretizationConstraint (const VecTimes& times,
-                                                            std::string name)
-   :ConstraintSet(kSpecifyLater, name) // just placeholder
+TimeDiscretizationConstraint::TimeDiscretizationConstraint(
+    const VecTimes& times, std::string name)
+    : ConstraintSet(kSpecifyLater, name)  // just placeholder
 {
-  dts_ = times;
+    dts_ = times;
 }
 
-int
-TimeDiscretizationConstraint::GetNumberOfNodes () const
-{
-  return dts_.size();
+int TimeDiscretizationConstraint::GetNumberOfNodes() const {
+    return dts_.size();
 }
 
-TimeDiscretizationConstraint::VectorXd
-TimeDiscretizationConstraint::GetValues () const
-{
-  VectorXd g = VectorXd::Zero(GetRows());
+TimeDiscretizationConstraint::VectorXd TimeDiscretizationConstraint::GetValues()
+    const {
+    VectorXd g = VectorXd::Zero(GetRows());
 
-  int k = 0;
-  for (double t : dts_)
-    UpdateConstraintAtInstance(t, k++, g);
+    int k = 0;
+    for (double t : dts_) UpdateConstraintAtInstance(t, k++, g);
 
-  return g;
+    return g;
 }
 
-TimeDiscretizationConstraint::VecBound
-TimeDiscretizationConstraint::GetBounds () const
-{
-  VecBound bounds(GetRows());
+TimeDiscretizationConstraint::VecBound TimeDiscretizationConstraint::GetBounds()
+    const {
+    VecBound bounds(GetRows());
 
-  int k = 0;
-  for (double t : dts_)
-    UpdateBoundsAtInstance(t, k++, bounds);
+    int k = 0;
+    for (double t : dts_) UpdateBoundsAtInstance(t, k++, bounds);
 
-  return bounds;
+    return bounds;
 }
 
-void
-TimeDiscretizationConstraint::FillJacobianBlock (std::string var_set,
-                                                  Jacobian& jac) const
-{
-  int k = 0;
-  for (double t : dts_)
-    UpdateJacobianAtInstance(t, k++, var_set, jac);
+void TimeDiscretizationConstraint::FillJacobianBlock(std::string var_set,
+                                                     Jacobian& jac) const {
+    int k = 0;
+    for (double t : dts_) UpdateJacobianAtInstance(t, k++, var_set, jac);
 }
 
 } /* namespace towr */
-
 
