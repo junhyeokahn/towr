@@ -54,44 +54,44 @@ namespace towr {
  * @ingroup Robots
  */
 class SingleRigidBodyDynamics : public DynamicModel {
-   public:
-    /**
-     * @brief Constructs a specific model.
-     * @param mass         The mass of the robot.
-     * @param ee_count     The number of endeffectors/forces.
-     * @param inertia_b    The elements of the 3x3 Inertia matrix around the
-     * CoM. This matrix maps angular accelerations expressed in base frame to
-     * moments in base frame.
-     */
-    SingleRigidBodyDynamics(double mass, const Eigen::Matrix3d& inertia_b,
-                            int ee_count);
+public:
+  /**
+   * @brief Constructs a specific model.
+   * @param mass         The mass of the robot.
+   * @param ee_count     The number of endeffectors/forces.
+   * @param inertia_b    The elements of the 3x3 Inertia matrix around the
+   * CoM. This matrix maps angular accelerations expressed in base frame to
+   * moments in base frame.
+   */
+  SingleRigidBodyDynamics(double mass, const Eigen::Matrix3d &inertia_b,
+                          int ee_count);
 
-    /**
-     * @brief Constructs a specific model.
-     * @param mass      Mass of the robot.
-     * @param I..       Elements of the 3x3 Inertia matrix
-     * @param ee_count  Number of endeffectors/forces.
-     */
-    SingleRigidBodyDynamics(double mass, double Ixx, double Iyy, double Izz,
-                            double Ixy, double Ixz, double Iyz, int ee_count);
+  /**
+   * @brief Constructs a specific model.
+   * @param mass      Mass of the robot.
+   * @param I..       Elements of the 3x3 Inertia matrix
+   * @param ee_count  Number of endeffectors/forces.
+   */
+  SingleRigidBodyDynamics(double mass, double Ixx, double Iyy, double Izz,
+                          double Ixy, double Ixz, double Iyz, int ee_count);
 
-    virtual ~SingleRigidBodyDynamics() = default;
+  virtual ~SingleRigidBodyDynamics() = default;
 
-    BaseAcc GetDynamicViolation() const override;
+  BaseAcc GetDynamicViolation() const override;
 
-    Jac GetJacobianWrtBaseLin(const Jac& jac_base_lin_pos,
-                              const Jac& jac_acc_base_lin) const override;
-    Jac GetJacobianWrtBaseAng(const EulerConverter& base_angular,
-                              double t) const override;
-    Jac GetJacobianWrtForce(const Jac& jac_force, EE) const override;
+  Jac GetJacobianWrtBaseLin(const Jac &jac_base_lin_pos,
+                            const Jac &jac_acc_base_lin) const override;
+  Jac GetJacobianWrtBaseAng(const EulerConverter &base_angular,
+                            double t) const override;
+  Jac GetJacobianWrtForce(const Jac &jac_force, EE) const override;
 
-    Jac GetJacobianWrtEEPos(const Jac& jac_ee_pos, EE) const override;
+  Jac GetJacobianWrtEEPos(const Jac &jac_ee_pos, EE) const override;
 
-   private:
-    /** Inertia of entire robot around the CoM expressed in a frame anchored
-     *  in the base.
-     */
-    Eigen::SparseMatrix<double, Eigen::RowMajor> I_b;
+private:
+  /** Inertia of entire robot around the CoM expressed in a frame anchored
+   *  in the base.
+   */
+  Eigen::SparseMatrix<double, Eigen::RowMajor> I_b;
 };
 
 } /* namespace towr */

@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <towr/variables/nodes_variables.h>
 
-
 namespace towr {
 
 /**
@@ -53,12 +52,12 @@ public:
    * @param deriv     The node derivative (pos, vel) which should be penalized.
    * @param dim       The node dimension which should be penalized.
    */
-  NodeCost (const std::string& nodes_id, Dx deriv, int dim, double weight);
-  virtual ~NodeCost () = default;
+  NodeCost(const std::string &nodes_id, Dx deriv, int dim, double weight);
+  virtual ~NodeCost() = default;
 
-  void InitVariableDependedQuantities(const VariablesPtr& x) override;
+  void InitVariableDependedQuantities(const VariablesPtr &x) override;
 
-  double GetCost () const override;
+  double GetCost() const override;
 
 private:
   std::shared_ptr<NodesVariables> nodes_;
@@ -68,7 +67,7 @@ private:
   int dim_;
   double weight_;
 
-  void FillJacobianBlock(std::string var_set, Jacobian&) const override;
+  void FillJacobianBlock(std::string var_set, Jacobian &) const override;
 };
 
 } /* namespace towr */

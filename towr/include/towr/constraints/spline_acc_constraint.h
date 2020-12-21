@@ -47,19 +47,19 @@ namespace towr {
  */
 class SplineAccConstraint : public ifopt::ConstraintSet {
 public:
-  SplineAccConstraint(const NodeSpline::Ptr& spline, std::string name);
+  SplineAccConstraint(const NodeSpline::Ptr &spline, std::string name);
   virtual ~SplineAccConstraint() = default;
 
   VectorXd GetValues() const override;
   VecBound GetBounds() const override;
-  void FillJacobianBlock (std::string var_set, Jacobian&) const override;
+  void FillJacobianBlock(std::string var_set, Jacobian &) const override;
 
 private:
   NodeSpline::Ptr spline_;        ///< a spline comprised of polynomials
   std::string node_variables_id_; /// polynomial parameterized node values
 
-  int n_junctions_;       ///< number of junctions between polynomials in spline.
-  int n_dim_;             ///< dimensions that this polynomial represents (e.g. x,y).
+  int n_junctions_; ///< number of junctions between polynomials in spline.
+  int n_dim_;       ///< dimensions that this polynomial represents (e.g. x,y).
   std::vector<double> T_; ///< Duration of each polynomial in spline.
 };
 

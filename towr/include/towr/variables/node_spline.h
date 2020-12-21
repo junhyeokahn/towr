@@ -47,81 +47,81 @@ namespace towr {
  * polynomials accordingly.
  */
 class NodeSpline : public Spline, public NodesObserver {
-   public:
-    using Ptr = std::shared_ptr<NodeSpline>;
-    using Jacobian = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+public:
+  using Ptr = std::shared_ptr<NodeSpline>;
+  using Jacobian = Eigen::SparseMatrix<double, Eigen::RowMajor>;
 
-    /**
-     * @brief Constructs a spline with constant durations.
-     * @param nodes_variables The optimized node variables (pos, vel).
-     * @param phase_durations The fixed duration of each phase.
-     */
-    NodeSpline(NodeSubjectPtr const node_variables,
-               const VecTimes& polynomial_durations);
-    ~NodeSpline() = default;
+  /**
+   * @brief Constructs a spline with constant durations.
+   * @param nodes_variables The optimized node variables (pos, vel).
+   * @param phase_durations The fixed duration of each phase.
+   */
+  NodeSpline(NodeSubjectPtr const node_variables,
+             const VecTimes &polynomial_durations);
+  ~NodeSpline() = default;
 
-    /**
-     * @brief Called by subject to update the polynomials with new node values.
-     */
-    void UpdateNodes();
+  /**
+   * @brief Called by subject to update the polynomials with new node values.
+   */
+  void UpdateNodes();
 
-    /**
-     * @brief How the spline changes when the node values change.
-     * @param t  The time along the spline at which the sensitivity is required.
-     * @param dxdt  Whether the derivative of the pos, vel or acc is desired.
-     * @return the pxn Jacobian, where:
-     *             p: Number of dimensions of the spline
-     *             n: Number of optimized node variables.
-     */
-    Jacobian GetJacobianWrtNodes(double t, Dx dxdt) const;
+  /**
+   * @brief How the spline changes when the node values change.
+   * @param t  The time along the spline at which the sensitivity is required.
+   * @param dxdt  Whether the derivative of the pos, vel or acc is desired.
+   * @return the pxn Jacobian, where:
+   *             p: Number of dimensions of the spline
+   *             n: Number of optimized node variables.
+   */
+  Jacobian GetJacobianWrtNodes(double t, Dx dxdt) const;
 
-    /**
-     * @brief How the spline changes when the node values change.
-     * @param poly_id  Polynomial for which the sensitivity is desired.
-     * @param t_local  Local time in that specific polynomial.
-     * @param dxdt  Whether the derivative of the pos, vel or acc is desired.
-     * @return the pxn Jacobian, where:
-     *             p: Number of dimensions of the spline
-     *             n: Number of optimized node variables.
-     */
-    Jacobian GetJacobianWrtNodes(int poly_id, double t_local, Dx dxdt) const;
+  /**
+   * @brief How the spline changes when the node values change.
+   * @param poly_id  Polynomial for which the sensitivity is desired.
+   * @param t_local  Local time in that specific polynomial.
+   * @param dxdt  Whether the derivative of the pos, vel or acc is desired.
+   * @return the pxn Jacobian, where:
+   *             p: Number of dimensions of the spline
+   *             n: Number of optimized node variables.
+   */
+  Jacobian GetJacobianWrtNodes(int poly_id, double t_local, Dx dxdt) const;
 
-    /**
-     * @returns The number of node variables being optimized over.
-     */
-    int GetNodeVariablesCount() const;
+  /**
+   * @returns The number of node variables being optimized over.
+   */
+  int GetNodeVariablesCount() const;
 
-    /**
-     * @brief How the spline position changes when the polynomial durations
-     * change.
-     * @param t  The time along the spline at which the sensitivity is required.
-     * @return the pxn Jacobian, where:
-     *             p: Number of dimensions of the spline
-     *             n: Number of optimized durations.
-     */
-    virtual Jacobian GetJacobianOfPosWrtDurations(double t) const {
-        assert(false);
-    }  // durations are fixed here
+  /**
+   * @brief How the spline position changes when the polynomial durations
+   * change.
+   * @param t  The time along the spline at which the sensitivity is required.
+   * @return the pxn Jacobian, where:
+   *             p: Number of dimensions of the spline
+   *             n: Number of optimized durations.
+   */
+  virtual Jacobian GetJacobianOfPosWrtDurations(double t) const {
+    assert(false);
+  } // durations are fixed here
 
-   protected:
-    /**
-     * The size and non-zero elements of the Jacobian of the position w.r.t
-     * nodes.
-     */
-    mutable Jacobian jac_wrt_nodes_structure_;
+protected:
+  /**
+   * The size and non-zero elements of the Jacobian of the position w.r.t
+   * nodes.
+   */
+  mutable Jacobian jac_wrt_nodes_structure_;
 
-    /**
-     * @brief Fills specific elements of the Jacobian with respect to nodes.
-     * @param poly_id  The ID of the polynomial for which to get the
-     * sensitivity.
-     * @param t_local  The time passed in the polynomial with poly_id.
-     * @param dxdt     Whether the function is position, velocity or
-     * acceleration.
-     * @param jac[in/out] The correctly sized Jacobian to fill.
-     * @param fill_with_zeros True if only sparsity pattern should be set.
-     */
-    void FillJacobianWrtNodes(int poly_id, double t_local, Dx dxdt,
-                              Jacobian& jac, bool fill_with_zeros) const;
+  /**
+   * @brief Fills specific elements of the Jacobian with respect to nodes.
+   * @param poly_id  The ID of the polynomial for which to get the
+   * sensitivity.
+   * @param t_local  The time passed in the polynomial with poly_id.
+   * @param dxdt     Whether the function is position, velocity or
+   * acceleration.
+   * @param jac[in/out] The correctly sized Jacobian to fill.
+   * @param fill_with_zeros True if only sparsity pattern should be set.
+   */
+  void FillJacobianWrtNodes(int poly_id, double t_local, Dx dxdt, Jacobian &jac,
+                            bool fill_with_zeros) const;
 };
 
 } /* namespace towr */

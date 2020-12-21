@@ -27,77 +27,84 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
+/******************************************************************************
+Modified by Junhyeok Ahn (junhyeokahn91@gmail.com) for Towr+
+******************************************************************************/
+
 #include <towr/constraints/terrain_constraint.h>
+
+#include <iostream>
 
 namespace towr {
 
-TerrainConstraint::TerrainConstraint(const HeightMap::Ptr& terrain,
+TerrainConstraint::TerrainConstraint(const HeightMap::Ptr &terrain,
                                      std::string ee_motion)
     : ConstraintSet(kSpecifyLater, "terrain-" + ee_motion) {
-    ee_motion_id_ = ee_motion;
-    terrain_ = terrain;
+  ee_motion_id_ = ee_motion;
+  terrain_ = terrain;
 }
 
-void TerrainConstraint::InitVariableDependedQuantities(const VariablesPtr& x) {
-    ee_motion_ = x->GetComponent<NodesVariablesPhaseBased>(ee_motion_id_);
+void TerrainConstraint::InitVariableDependedQuantities(const VariablesPtr &x) {
+  ee_motion_ = x->GetComponent<NodesVariablesPhaseBased>(ee_motion_id_);
 
-    // skip first node, b/c already constrained by initial stance
-    for (int id = 1; id < ee_motion_->GetNodes().size(); ++id)
-        node_ids_.push_back(id);
+  // skip first node, b/c already constrained by initial stance
+  for (int id = 1; id < ee_motion_->GetNodes().size(); ++id)
+    node_ids_.push_back(id);
 
-    int constraint_count = node_ids_.size();
-    SetRows(constraint_count);
+  int constraint_count = node_ids_.size();
+  SetRows(constraint_count);
 }
 
 Eigen::VectorXd TerrainConstraint::GetValues() const {
-    VectorXd g(GetRows());
+  VectorXd g(GetRows());
 
-    auto nodes = ee_motion_->GetNodes();
-    int row = 0;
-    for (int id : node_ids_) {
-        Vector3d p = nodes.at(id).p();
-        g(row++) = p.z() - terrain_->GetHeight(p.x(), p.y());
-    }
+  auto nodes = ee_motion_->GetNodes();
+  int row = 0;
+  for (int id : node_ids_) {
+    Vector3d p = nodes.at(id).p();
+    g(row++) = p.z() - terrain_->GetHeight(p.x(), p.y());
+  }
 
-    return g;
+  return g;
 }
 
 TerrainConstraint::VecBound TerrainConstraint::GetBounds() const {
-    VecBound bounds(GetRows());
-    double max_distance_above_terrain = 1e20;  // [m]
+  VecBound bounds(GetRows());
+  double max_distance_above_terrain = 1e20; // [m]
 
-    int row = 0;
-    for (int id : node_ids_) {
-        if (ee_motion_->IsConstantNode(id))
-            bounds.at(row) = ifopt::BoundZero;
-        else
-            bounds.at(row) = ifopt::Bounds(0.0, max_distance_above_terrain);
-        row++;
+  int row = 0;
+  for (int id : node_ids_) {
+    if (ee_motion_->IsConstantNode(id)) {
+      bounds.at(row) = ifopt::BoundZero;
+    } else {
+      bounds.at(row) = ifopt::Bounds(0.0, max_distance_above_terrain);
     }
+    row++;
+  }
 
-    return bounds;
+  return bounds;
 }
 
 void TerrainConstraint::FillJacobianBlock(std::string var_set,
-                                          Jacobian& jac) const {
-    if (var_set == ee_motion_->GetName()) {
-        auto nodes = ee_motion_->GetNodes();
-        int row = 0;
-        for (int id : node_ids_) {
-            int idx = ee_motion_->GetOptIndex(
-                NodesVariables::NodeValueInfo(id, kPos, Z));
-            jac.coeffRef(row, idx) = 1.0;
+                                          Jacobian &jac) const {
+  if (var_set == ee_motion_->GetName()) {
+    auto nodes = ee_motion_->GetNodes();
+    int row = 0;
+    for (int id : node_ids_) {
+      int idx =
+          ee_motion_->GetOptIndex(NodesVariables::NodeValueInfo(id, kPos, Z));
+      jac.coeffRef(row, idx) = 1.0;
 
-            Vector3d p = nodes.at(id).p();
-            for (auto dim : {X, Y}) {
-                int idx = ee_motion_->GetOptIndex(
-                    NodesVariables::NodeValueInfo(id, kPos, dim));
-                jac.coeffRef(row, idx) = -terrain_->GetDerivativeOfHeightWrt(
-                    To2D(dim), p.x(), p.y());
-            }
-            row++;
-        }
+      Vector3d p = nodes.at(id).p();
+      for (auto dim : {X, Y}) {
+        int idx = ee_motion_->GetOptIndex(
+            NodesVariables::NodeValueInfo(id, kPos, dim));
+        jac.coeffRef(row, idx) =
+            -terrain_->GetDerivativeOfHeightWrt(To2D(dim), p.x(), p.y());
+      }
+      row++;
     }
+  }
 }
 
 } /* namespace towr */

@@ -56,11 +56,11 @@ public:
   TotalDurationConstraint(double T_total, int ee);
   ~TotalDurationConstraint() = default;
 
-  void InitVariableDependedQuantities(const VariablesPtr& x) override;
+  void InitVariableDependedQuantities(const VariablesPtr &x) override;
 
   VectorXd GetValues() const override;
   VecBound GetBounds() const override;
-  void FillJacobianBlock (std::string var_set, Jacobian&) const override;
+  void FillJacobianBlock(std::string var_set, Jacobian &) const override;
 
 private:
   PhaseDurations::Ptr phase_durations_;

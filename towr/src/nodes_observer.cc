@@ -32,8 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace towr {
 
-NodesObserver::NodesObserver(NodeSubjectPtr subject)
-{
+NodesObserver::NodesObserver(NodeSubjectPtr subject) {
   node_values_ = subject;
 
   // register observer to subject so this class always up-to-date
@@ -41,5 +40,3 @@ NodesObserver::NodesObserver(NodeSubjectPtr subject)
 };
 
 } // namespace towr
-
-
